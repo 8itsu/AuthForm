@@ -28,7 +28,7 @@ import { supabase } from "@/supabaseClient";
 // import { useEffect } from "react";
 
 function Registration() {
-  let id;
+  const [id, setId] = useState<string | null>(null);
   const carouselRef = useRef<CarouselApi | null>(null);
   const [email, emailChange] = useState<string>("");
   const [code, codeChange] = useState<string>("");
@@ -82,7 +82,7 @@ function Registration() {
 
     if (data.session) {
       console.log("Пользователь вошёл:", data.user);
-      id = data.user.id;
+      setId(data.user.id);
     }
 
     toast("Email подтверждён", { description: "Теперь задайте пароль" });
