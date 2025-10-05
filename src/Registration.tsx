@@ -24,8 +24,11 @@ import {
 } from "@/components/ui/carousel";
 import { useRef } from "react";
 import { ChevronLeft } from "lucide-react";
+import { supabase } from "@/supabaseClient";
+// import { useEffect } from "react";
 
 function Registration() {
+  let id;
   const carouselRef = useRef<CarouselApi | null>(null);
   const [email, emailChange] = useState<string>("");
   const [code, codeChange] = useState<string>("");
@@ -35,8 +38,17 @@ function Registration() {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   }
-  function sendCode() {
+  async function sendCode() {
     if (validateEmail(email)) {
+      //Отправляем код
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          // set this to false if you do not want the user to be automatically signed up
+          shouldCreateUser: true,
+        },
+      });
+      //
       toast("Подтверждение электронной почты", {
         description:
           "Отправили код вам на электронную почту. Не забудьте проверить спам",
@@ -56,17 +68,25 @@ function Registration() {
       carouselRef.current.scrollPrev();
     }
   }
-  function checkCode() {
-    if (code !== "111111") {
-      toast("Неверный код", {
-        description:
-          "Пожалуйста перепроверьте введеный код или отправьте его заново",
-      });
+  async function checkCode() {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: "email",
+    });
+
+    if (error) {
+      toast("Ошибка проверки кода", { description: error.message });
       return;
     }
-    if (carouselRef.current) {
-      carouselRef.current.scrollNext();
+
+    if (data.session) {
+      console.log("Пользователь вошёл:", data.user);
+      id = data.user.id;
     }
+
+    toast("Email подтверждён", { description: "Теперь задайте пароль" });
+    carouselRef.current?.scrollNext();
   }
   function validatePassword(password: string): boolean {
     // хотя бы одна заглавная буква
@@ -78,7 +98,7 @@ function Registration() {
 
     return hasUpperCase && hasNumber && hasSpecialChar;
   }
-  function handleRegistration() {
+  async function handleRegistration() {
     if (!validatePassword(password)) {
       toast("Не надежный пароль", {
         description:
@@ -86,6 +106,11 @@ function Registration() {
       });
       return;
     }
+
+    const { error } = await supabase
+      .from("user")
+      .insert({ id: id, user_email: email, user_password: password });
+
     toast("Успешная регистрация", {
       description: "Вы успешно прошли регистрацию. Добро пожаловать",
     });

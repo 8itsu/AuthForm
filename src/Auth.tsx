@@ -37,7 +37,7 @@ function Auth() {
         <TabsContents>
           {tabs.map((tab) => (
             <TabsContent key={tab.value} value={tab.value}>
-              <p>{tab.content}</p>
+              <>{tab.content}</>
             </TabsContent>
           ))}
         </TabsContents>

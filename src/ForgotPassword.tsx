@@ -112,7 +112,7 @@ function ForgotPassword() {
               opts={{
                 watchDrag: false,
               }}
-              className="w-[370px]"
+              className=""
             >
               <CarouselContent>
                 <CarouselItem>
